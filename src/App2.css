@@ -1,0 +1,80 @@
+.App:before {
+	content:"";
+	position:fixed;
+	left:0;
+	top:0;
+	right:0;
+	bottom:0;
+	z-index:-1;
+	display:block;
+	background:url(https://c4.wallpaperflare.com/wallpaper/718/756/55/gray-dark-gradation-blur-wallpaper-preview.jpg) no-repeat 50% 50%;
+	background-size:cover;
+}
+.GiftDetective {
+    width: 400px;
+    margin: 0 auto;
+    text-align: center;
+    font-family: 'Press Start 2P', cursive;
+    background-color: rgb(133, 11, 11);
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 10px #222;
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px #444;
+  }
+  
+  .boxes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .box {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    cursor: pointer;
+  }
+  
+  .box.selected {
+    border-color: #3b5998;
+    box-shadow: 2px 2px 10px #3b5998;
+  }
+  
+  img {
+    max-width: 90%;
+    max-height: 90%;
+  }
+  
+  .links, button {
+    background-color: #ffd700;
+    color: #000;
+    text-decoration: none;
+    padding: 10px 20px;
+    border:  3px solid black;
+    font-size: 18px;
+    margin: 10px;
+    cursor: pointer;
+    text-shadow: 1px 1px #444;
+  }
+  
+  .links:hover, button:hover {
+    background-color: #eee;
+  }
+  
+  p {
+    font-size: 18px;
+    margin: 10px;
+    text-shadow: 1px 1px #444;
+}
+
