@@ -7,7 +7,7 @@ import UploadPicHandler from './UploadPicHandler';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
 import { ClipLoader, BarLoader, BeatLoader, BounceLoader, CircleLoader, ClimbingBoxLoader } from "react-spinners";
-
+const allAnswers = [];
 function App2() {
   const [data, setData] = useState([]);
 
@@ -36,13 +36,13 @@ function App2() {
     >
 
       <Routes>
-        <Route path='/' element={<AllThreeComponents items ={componentProps} onChildData={handleChildData}/>} />
-        {/* <Route path='/' element={<GiftDetective nextPage='/result' question="Can you guess my favorite food?" onChildData ={handleChildData}/>} /> */}
-        {/* <Route path='/question2' element={<GiftDetective nextPage='/question3' question="Can you guess my favorite color?" onChildData />} /> */}
-        {/* <Route path='/question3' element={<GiftDetective nextPage='/result' question="Can you guess my favorite gift?" onChildData />} /> */}
-        <Route  path='/result' element={ <Resultpage data = {data}/> } />
+        {/* <Route path='/' element={<AllThreeComponents items ={componentProps} onChildData={handleChildData}/>} /> */}
+        <Route path='/' element={<GiftDetective nextPage='/question2' question="Can you guess my favorite food?" onChildData ={handleChildData}/>} />
+        <Route path='/question2' element={<GiftDetective nextPage='/question3' question="Can you guess my favorite color?" onChildData ={handleChildData} />} />
+        <Route path='/question3' element={<GiftDetective nextPage='/result' question="Can you guess my favorite gift?" onChildData={handleChildData} />} />
+        <Route  path='/result' element={ <Resultpage data = {allAnswers}/> } />
       </Routes>
-      <UploadPicHandler/>
+      {/* <UploadPicHandler/> */}
     </div>
     </Router>
 
@@ -125,7 +125,15 @@ const GiftDetective = (props) => {
     const [submitOnce, setSubmitOnce] = useState(false);
     const linkRef = useRef(null);
     // const [showResult, setShowResult] = useState(false);
-
+    
+    useEffect(()=>{
+      setSelectedBoxes([]);
+    setCorrectAnswers(0);
+    setShowAnswer(false);
+    setShowLoading(false);
+    setSubmitOnce(false);
+      console.log(props.nextPage)
+    },[props.nextPage])
   
     const handleBoxClick = (index) => {
       if(submitOnce){
@@ -172,13 +180,27 @@ const GiftDetective = (props) => {
       setCorrectAnswers(correctAnswers + correctIncrement);
 
       console.log(correctIncrement+" is correct answers");
+      
+      //need to check this out
+      props.onChildData(correctIncrement);
+      /*
       props.onChildData({
         correctAnswers: correctIncrement,
         correctIndexes:answers,
         guesses: selectedBoxes});
-      setShowAnswer(true);
-      props.goToNextComponent();
-      linkRef.current.click();
+      */
+        setShowAnswer(true);
+        // props.goToNextComponent();
+        // linkRef.current.click();
+
+
+        allAnswers.push(correctIncrement)
+
+        console.log(linkRef);
+        console.log(props.nextPage)
+
+
+
 
     }
   
@@ -211,7 +233,7 @@ const GiftDetective = (props) => {
           {showLoading ? <div> <LoadingPage/></div>: null}
         </div>
 
-        <button onClick={!submitOnce && selectedBoxes.length >2 ? handleSubmit : null }>Submit</button>
+        <button onClick={!submitOnce && selectedBoxes.length >2 ? handleSubmit : null }>answers</button>
           {/* <Link className='links'onClick={!submitOnce && selectedBoxes.length >=0 ? handleSubmit : null } to='/result'>Result</Link> */}
         
         
@@ -221,7 +243,7 @@ const GiftDetective = (props) => {
           <p>Keep guessing.</p>
         )} */}
 
-      <Link ref={linkRef} to={props.nextPage}></Link>
+      <Link ref={linkRef} to={props.nextPage}> Next---</Link>
         {correctAnswers}
       </div>
       
@@ -233,10 +255,11 @@ const GiftDetective = (props) => {
 
     return (
     <div>
-        {props.data.map((item,i) => { 
+        {/* {props.data.map((item,i) => { 
           console.log(item);
           return <p key={i}> you got {item.correctAnswers} </p>
-  })}
+  })} */}
+  {props.data}
     </div>
     );
   }
