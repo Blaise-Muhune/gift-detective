@@ -11,23 +11,10 @@ const allAnswers = [];
 function App2() {
   const [data, setData] = useState([]);
 
-  const componentProps = [
-    {
-      question:'Can you guess my favorite color?',
-  },
-    {
-      question:'Can you guess my favorite Food?',
-  },
-    {
-      question:'Can you guess my favorite gift?',
-    nextPage: '/result'
-  }
-  ]
-
-  const handleChildData = (childData) => {
-    setData(childData);
-    console.log(childData);
-  };
+  // const handleChildData = (childData) => {
+  //   setData(childData);
+  //   console.log(childData);
+  // };
 
   return (
     <Router>
@@ -36,11 +23,43 @@ function App2() {
     >
 
       <Routes>
-        {/* <Route path='/' element={<AllThreeComponents items ={componentProps} onChildData={handleChildData}/>} /> */}
-        <Route path='/' element={<GiftDetective nextPage='/question2' question="Can you guess my favorite food?" onChildData ={handleChildData}/>} />
-        <Route path='/question2' element={<GiftDetective nextPage='/question3' question="Can you guess my favorite color?" onChildData ={handleChildData} />} />
-        <Route path='/question3' element={<GiftDetective nextPage='/result' question="Can you guess my favorite gift?" onChildData={handleChildData} />} />
-        <Route  path='/result' element={ <Resultpage data = {allAnswers}/> } />
+        <Route 
+          path='/' 
+          element={
+           <GiftDetective 
+             nextPage='/question2' 
+             stayOnthisPage='/' 
+             question="Can you guess my favorite food?" 
+             />
+             } />
+        <Route 
+          path='/question2' 
+          element={
+            <GiftDetective 
+              nextPage='/question3' 
+              stayOnthisPage ='/question2' 
+              question="Can you guess my favorite color?"  
+            />
+          } 
+          />
+        <Route 
+          path='/question3' 
+          element={
+            <GiftDetective 
+              nextPage='/result' 
+              stayOnthisPage='/question3' 
+              question="Can you guess my favorite gift?"  
+            />
+          } 
+        />
+        <Route  
+        path='/result' 
+        element={ 
+          <Resultpage 
+            data = {allAnswers}
+            /> 
+          } 
+        />
       </Routes>
       {/* <UploadPicHandler/> */}
     </div>
@@ -49,89 +68,36 @@ function App2() {
   );
 }
 
-function OneDetective ({item}){
-return(
-  <div>
-          <h2>{item.question}</h2>
-          <p>{item.question}</p>
-  </div>
-)
-}
-
-function AllThreeComponents({items}){
-  const [data, setData] = useState([]);
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
-  const tempData=[];
-
-  
-
-  
-  function handleNext() {
-    setCurrentItemIndex(currentItemIndex + 1);
-  }
-
-  const handleChildDataColor = (childData) => {
-    // setData(data.push(childData));
-    tempData.push(childData);
-  // console.log(tempData);
-
-  };
-  const handleChildDataFood = (childData) => {
-    // setData(data.push(childData));
-    tempData.push(childData);
-
-  // console.log(tempData);
-
-  };
-
-  const handleChildDataGift = (childData) => {
-    tempData.push(childData);
-    setData(tempData);
-
-    console.log(tempData);
-    
-    items.onChildData(tempData);
-  }
-  return(<div>
-    {/* {
-      items.map((item,i) => (
-        <div key={i}>
-          <h2>{item.question}</h2>
-          <p>{item.question}</p>
-        </div>
-      ))
-    } */}
-    {
-      items[currentItemIndex] && <GiftDetective
-      question = {items[currentItemIndex].question}
-      onChildData={items.indexOf(currentItemIndex)==0? handleChildDataColor: (items.indexOf(currentItemIndex)==1? handleChildDataFood:handleChildDataGift)}
-      nextPage={items[currentItemIndex].nextPage} />
-    }
-      <button onClick={handleNext}>Next</button>
-    {/* <GiftDetective goToNextComponent ={handleNext} question="Can you guess my favorite color?" onChildData ={handleChildDataColor}/>
-    <GiftDetective goToNextComponent ={handleNext}question="Can you guess my favorite food?" onChildData ={handleChildDataFood}/>
-    <GiftDetective nextPage = "/result"question="Can you guess my favorite Gift?" onChildData ={handleChildDataGift}/> */}
-  </div>);
-}
-
-
-
-
 const GiftDetective = (props) => {
     const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [correctAnswers, setCorrectAnswers] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
     const [showLoading, setShowLoading] = useState(false);
     const [submitOnce, setSubmitOnce] = useState(false);
+    const [image, setImage] = useState('');
     const linkRef = useRef(null);
     // const [showResult, setShowResult] = useState(false);
     
     useEffect(()=>{
+      const ACCESS_KEY = 'XTHkUujQlEEg5KTxxPl_cjBsObWWBpPzusd0vPoKVc8';
+      const keyword = 'green';
+
+    // make a request to the Unsplash API
+    fetch(`https://api.unsplash.com/search/photos?query=${keyword}&client_id=${ACCESS_KEY}`)
+      .then(response => response.json())
+      .then(data => {
+        // get the URL of the first image in the results
+        const imageUrl = data.results[0].urls.regular;
+        setImage(imageUrl);
+      })
+      .catch(error => console.error(error));
+
       setSelectedBoxes([]);
-    setCorrectAnswers(0);
-    setShowAnswer(false);
-    setShowLoading(false);
-    setSubmitOnce(false);
+      setCorrectAnswers(0);
+      setShowAnswer(false);
+      setShowLoading(false);
+      setSubmitOnce(false);
+      setImage('');
       console.log(props.nextPage)
     },[props.nextPage])
   
@@ -171,9 +137,11 @@ const GiftDetective = (props) => {
       
 
       // check if the selected boxes match the correct answers
+      const CASeletedPosition = [];
       answers.forEach((answer) => {
         if (selectedBoxes.includes(answer)) {
           correctIncrement++;
+          CASeletedPosition.push(answer);
         }
       });
 
@@ -182,7 +150,7 @@ const GiftDetective = (props) => {
       console.log(correctIncrement+" is correct answers");
       
       //need to check this out
-      props.onChildData(correctIncrement);
+      // props.onChildData(correctIncrement);
       /*
       props.onChildData({
         correctAnswers: correctIncrement,
@@ -194,10 +162,12 @@ const GiftDetective = (props) => {
         // linkRef.current.click();
 
 
-        allAnswers.push(correctIncrement)
+        allAnswers.push({
+          correctAnswer: correctIncrement,
+          CASeletedPosition: CASeletedPosition,
+          CAPositions: answers,
 
-        console.log(linkRef);
-        console.log(props.nextPage)
+        })
 
 
 
@@ -216,7 +186,7 @@ const GiftDetective = (props) => {
           className={`box ${isSelected ? 'selected' : ''}`}
           onClick={() => handleBoxClick(index)}
         >
-          <img src={imageUrl} alt="" />
+          <img src={/*imageUrl*/ image} alt="" />
         </div>
       );
     }
@@ -233,7 +203,7 @@ const GiftDetective = (props) => {
           {showLoading ? <div> <LoadingPage/></div>: null}
         </div>
 
-        <button onClick={!submitOnce && selectedBoxes.length >2 ? handleSubmit : null }>answers</button>
+        {/* <button onClick={!submitOnce && selectedBoxes.length >2 ? handleSubmit : null }>answers</button> */}
           {/* <Link className='links'onClick={!submitOnce && selectedBoxes.length >=0 ? handleSubmit : null } to='/result'>Result</Link> */}
         
         
@@ -243,8 +213,18 @@ const GiftDetective = (props) => {
           <p>Keep guessing.</p>
         )} */}
 
-      <Link ref={linkRef} to={props.nextPage}> Next---</Link>
-        {correctAnswers}
+      <Link ref={linkRef} 
+      onClick={
+        !submitOnce && selectedBoxes.length >2 ? 
+        handleSubmit : null
+      } 
+        to={
+          !submitOnce && selectedBoxes.length >2 ? 
+          props.nextPage: props.stayOnthisPage
+          }> 
+          <button>Next</button>
+          </Link>
+        {/* {correctAnswers} */}
       </div>
       
     );
@@ -252,16 +232,53 @@ const GiftDetective = (props) => {
 
 
   function Resultpage(props) {
-
+    const messages = ['color(s)','food(s)', 'gift(s)']
+    // console.log(props.data);
     return (
-    <div>
-        {/* {props.data.map((item,i) => { 
-          console.log(item);
-          return <p key={i}> you got {item.correctAnswers} </p>
-  })} */}
-  {props.data}
-    </div>
+      <div>
+        
+        {
+          props.data.map((item, i) => (
+              <div className='result-container' key={i}>
+                <p>You correctly guessed {item.correctAnswer} {messages[i]}</p>
+                <div className='boxes'>
+                {
+                    item.CASeletedPosition.map((box, j) => (
+                      <div key={j}>
+                        <EachResult id={box} />
+                      
+                      </div>
+                    )
+                  )
+                }
+                </div>
+              </div>
+            )
+          )
+        }
+      </div>
     );
+  }
+  
+
+  function EachResult(props){
+    const renderBox = (index) => {
+
+      // const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
+      const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
+      return (
+        <div 
+          className='box box-result'
+        >
+          <img src={imageUrl} alt="" />
+        </div>
+      );
+    }
+    return(
+      <div>
+        {renderBox()}
+      </div>
+    )
   }
 
 export default App2;
