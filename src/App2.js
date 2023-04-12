@@ -1,6 +1,9 @@
-//todo: input picture, 
+// todo: input picture, not needed anymore
+// todo: to generate diferent image just find a way to iterate the... anyway it done
+// todo: impliment firebase so that the result page can retrieve the data form the other pageTopics and display it there
+//      or i can store all the correctImmageUrl somewhere and use it on the resultpage ... hum
 
-import React, { useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect} from 'react';
 import LoadingPage from './LoadingPage';
 import './App2.css';
 import UploadPicHandler from './UploadPicHandler';
@@ -9,12 +12,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { ClipLoader, BarLoader, BeatLoader, BounceLoader, CircleLoader, ClimbingBoxLoader } from "react-spinners";
 const allAnswers = [];
 function App2() {
-  const [data, setData] = useState([]);
-
-  // const handleChildData = (childData) => {
-  //   setData(childData);
-  //   console.log(childData);
-  // };
+  const pageTopics = ['food', 'light', 'gift'];
 
   return (
     <Router>
@@ -24,30 +22,33 @@ function App2() {
 
       <Routes>
         <Route 
-          path='/' 
+          path='/food' 
           element={
            <GiftDetective 
-             nextPage='/question2' 
-             stayOnthisPage='/' 
+             pageTopic={pageTopics[0]}
+             nextPage='/color' 
+             stayOnthisPage='/food' 
              question="Can you guess my favorite food?" 
              />
              } />
         <Route 
-          path='/question2' 
+          path='/color' 
           element={
             <GiftDetective 
-              nextPage='/question3' 
-              stayOnthisPage ='/question2' 
+              pageTopic={pageTopics[1]}
+              nextPage='/gift' 
+              stayOnthisPage ='/color' 
               question="Can you guess my favorite color?"  
             />
           } 
           />
         <Route 
-          path='/question3' 
+          path='/gift' 
           element={
             <GiftDetective 
+              pageTopic={pageTopics[2]}
               nextPage='/result' 
-              stayOnthisPage='/question3' 
+              stayOnthisPage='/gift' 
               question="Can you guess my favorite gift?"  
             />
           } 
@@ -74,32 +75,60 @@ const GiftDetective = (props) => {
     const [showAnswer, setShowAnswer] = useState(false);
     const [showLoading, setShowLoading] = useState(false);
     const [submitOnce, setSubmitOnce] = useState(false);
-    const [image, setImage] = useState('');
+    // const [image, setImage] = useState('');
+    const [imageList, setImageList] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const linkRef = useRef(null);
     // const [showResult, setShowResult] = useState(false);
+
+
+
+//-------------use effect to fetch images --------------------------------------
     
     useEffect(()=>{
+      async function fetchData(){
+
       const ACCESS_KEY = 'XTHkUujQlEEg5KTxxPl_cjBsObWWBpPzusd0vPoKVc8';
-      const keyword = 'green';
+      const keyword = props.pageTopic
+
+      // const page = Math.floor(Math.random() * 10) + 1;
 
     // make a request to the Unsplash API
-    fetch(`https://api.unsplash.com/search/photos?query=${keyword}&client_id=${ACCESS_KEY}`)
+    // await fetch(`https://api.unsplash.com/search/photos?query=${keyword}&client_id=${ACCESS_KEY}&page=${page}`)
+    await fetch(`https://api.unsplash.com/search/photos?query=${keyword}&client_id=${ACCESS_KEY}`)
       .then(response => response.json())
-      .then(data => {
+      .then(unsplashData => {
         // get the URL of the first image in the results
-        const imageUrl = data.results[0].urls.regular;
-        setImage(imageUrl);
+        // const index = Math.floor(Math.random() * unsplashData.results.length);
+        // const imageUrl = unsplashData.results[index].urls.regular;
+        const imageUrl = unsplashData
+        setImageList(imageUrl);
+        setLoading(false)
+        console.log(imageList);
       })
-      .catch(error => console.error(error));
+      .catch(error => console.error("this the error: "+error));
+      setLoading(false)
+
+      } fetchData()
+    },
+    [loading])
+
+
+//-------------use effect to reinitialize the viriable--------------------------------------
+
+
+    useEffect(()=>{
 
       setSelectedBoxes([]);
       setCorrectAnswers(0);
       setShowAnswer(false);
       setShowLoading(false);
+      setLoading(true)
       setSubmitOnce(false);
-      setImage('');
-      console.log(props.nextPage)
-    },[props.nextPage])
+      setImageList(null)
+    },
+    [props.nextPage])
   
     const handleBoxClick = (index) => {
       if(submitOnce){
@@ -177,42 +206,43 @@ const GiftDetective = (props) => {
     const handleReset = ()=>{
       setShowLoading(true);
     }
+
     const renderBox = (index) => {
 
-      const imageUrl = `https://source.unsplash.com/random/200x200?sig=${index}`;
+      const imageUrl = imageList.results[index].urls.regular;
+      // const imageUrl = imageList
+      // console.log(imageList.results[index])
+      // const imageUrl = `https://source.unsplash.com/random/200x200?sig=${index}`;
       const isSelected = selectedBoxes.includes(index);
       return (
         <div key ={index}
           className={`box ${isSelected ? 'selected' : ''}`}
           onClick={() => handleBoxClick(index)}
         >
-          <img src={/*imageUrl*/ image} alt="" />
+          <img src={imageUrl} alt="ohoh :(" />
         </div>
       );
     }
   
+    if(loading){
+      return(
+        <div>
+          <p>
+            ...loading...
+          </p>
+        </div>
+      )
+    }
     return (
       <div className="GiftDetective">
         <h1>{props.question}</h1>
         <div className="boxes">
           {Array.from({ length: 6 }, (_, i) => i + 1).map(renderBox)}
         </div>
-        {/* <button onClick={handleReset}>Reset</button> */}
         
         <div>
           {showLoading ? <div> <LoadingPage/></div>: null}
         </div>
-
-        {/* <button onClick={!submitOnce && selectedBoxes.length >2 ? handleSubmit : null }>answers</button> */}
-          {/* <Link className='links'onClick={!submitOnce && selectedBoxes.length >=0 ? handleSubmit : null } to='/result'>Result</Link> */}
-        
-        
-        {/* {showAnswer ? (
-          <Link ref={linkRef} to='/result'>result</Link>
-        ) : (
-          <p>Keep guessing.</p>
-        )} */}
-
       <Link ref={linkRef} 
       onClick={
         !submitOnce && selectedBoxes.length >2 ? 
@@ -224,7 +254,6 @@ const GiftDetective = (props) => {
           }> 
           <button>Next</button>
           </Link>
-        {/* {correctAnswers} */}
       </div>
       
     );
@@ -245,7 +274,7 @@ const GiftDetective = (props) => {
                 {
                     item.CASeletedPosition.map((box, j) => (
                       <div key={j}>
-                        <EachResult id={box} />
+                        <EachResult resultImageUrl ={''} id={box} />
                       
                       </div>
                     )
@@ -264,8 +293,8 @@ const GiftDetective = (props) => {
   function EachResult(props){
     const renderBox = (index) => {
 
-      // const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
       const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
+      // const imageUrl = props.resultImageUrl;
       return (
         <div 
           className='box box-result'
