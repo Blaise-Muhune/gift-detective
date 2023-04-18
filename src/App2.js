@@ -1,5 +1,5 @@
 // todo: input picture, not needed anymore
-// todo: to generate diferent image just find a way to iterate the... anyway it done
+// todo: to generate diferent image just find a way to iterate the... anyway it's done
 // todo: impliment firebase so that the result page can retrieve the data form the other pageTopics and display it there
 //      or i can store all the correctImmageUrl somewhere and use it on the resultpage ... hum
 
@@ -13,6 +13,12 @@ import { ClipLoader, BarLoader, BeatLoader, BounceLoader, CircleLoader, Climbing
 const allAnswers = [];
 function App2() {
   const pageTopics = ['food', 'light', 'gift'];
+  const [data, setData] = useState([]);
+
+  const handleChildData=(childData)=>{
+    setData(childData);
+
+  }
 
   return (
     <Router>
@@ -57,6 +63,7 @@ function App2() {
         path='/result' 
         element={ 
           <Resultpage 
+
             data = {allAnswers}
             /> 
           } 
@@ -68,16 +75,19 @@ function App2() {
 
   );
 }
-
+// const AllRetrieveImageUrl = []
 const GiftDetective = (props) => {
     const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [correctAnswers, setCorrectAnswers] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
     const [showLoading, setShowLoading] = useState(false);
     const [submitOnce, setSubmitOnce] = useState(false);
+    let retrieveImgUrl = [];
     // const [image, setImage] = useState('');
     const [imageList, setImageList] = useState(null);
     const [loading, setLoading] = useState(true);
+
+
 
     const linkRef = useRef(null);
     // const [showResult, setShowResult] = useState(false);
@@ -105,7 +115,7 @@ const GiftDetective = (props) => {
         const imageUrl = unsplashData
         setImageList(imageUrl);
         setLoading(false)
-        console.log(imageList);
+        // console.log(imageList);
       })
       .catch(error => console.error("this the error: "+error));
       setLoading(false)
@@ -113,6 +123,9 @@ const GiftDetective = (props) => {
       } fetchData()
     },
     [loading])
+
+//-----------------------------------------------------------------------------------------
+
 
 
 //-------------use effect to reinitialize the viriable--------------------------------------
@@ -126,9 +139,15 @@ const GiftDetective = (props) => {
       setShowLoading(false);
       setLoading(true)
       setSubmitOnce(false);
+      // setRetrieveImageUrl([])
       setImageList(null)
     },
     [props.nextPage])
+
+
+//-----------------------------------------------------------------------------------------
+
+
   
     const handleBoxClick = (index) => {
       if(submitOnce){
@@ -145,7 +164,7 @@ const GiftDetective = (props) => {
       }
     }
   
-    const handleSubmit = () => {
+    const handleNext = () => {
       if (selectedBoxes.length < 3) {
         alert("You need to select 3 images before submitting!");
         return;
@@ -155,9 +174,10 @@ const GiftDetective = (props) => {
       setSubmitOnce(true);
       let num = 7; 
       const tempArr = []; //gather all the already random number
-        const answers = Array.from({length: 3}, (_, i) => i + 1).map(function(){ 
-          while(num > 6 || tempArr.includes(num) ){ 
-            num = Math.floor(Math.random() * 10)+1
+        const answers = Array.from({length: 3}, (_, i) => i).map(function(){ 
+          //generate a random number between 0 - 5
+          while(num >= 6 || tempArr.includes(num) ){ 
+            num = Math.floor(Math.random() * 10);
           }
           tempArr.push(num)
           return num;
@@ -178,27 +198,21 @@ const GiftDetective = (props) => {
 
       console.log(correctIncrement+" is correct answers");
       
-      //need to check this out
-      // props.onChildData(correctIncrement);
-      /*
-      props.onChildData({
-        correctAnswers: correctIncrement,
-        correctIndexes:answers,
-        guesses: selectedBoxes});
-      */
-        setShowAnswer(true);
-        // props.goToNextComponent();
-        // linkRef.current.click();
 
+        setShowAnswer(true);
+        // AllRetrieveImageUrl.push(retrieveImgUrl);
+        // console.log(allretrieveImgUrl);
 
         allAnswers.push({
           correctAnswer: correctIncrement,
           CASeletedPosition: CASeletedPosition,
           CAPositions: answers,
+          CAImgUrl: retrieveImgUrl
 
         })
 
-
+    // retrive all url Link of the correct answer
+    
 
 
     }
@@ -210,6 +224,8 @@ const GiftDetective = (props) => {
     const renderBox = (index) => {
 
       const imageUrl = imageList.results[index].urls.regular;
+    retrieveImgUrl.push(imageUrl)
+
       // const imageUrl = imageList
       // console.log(imageList.results[index])
       // const imageUrl = `https://source.unsplash.com/random/200x200?sig=${index}`;
@@ -235,25 +251,27 @@ const GiftDetective = (props) => {
     }
     return (
       <div className="GiftDetective">
-        <h1>{props.question}</h1>
-        <div className="boxes">
-          {Array.from({ length: 6 }, (_, i) => i + 1).map(renderBox)}
-        </div>
-        
-        <div>
-          {showLoading ? <div> <LoadingPage/></div>: null}
-        </div>
-      <Link ref={linkRef} 
-      onClick={
-        !submitOnce && selectedBoxes.length >2 ? 
-        handleSubmit : null
-      } 
-        to={
-          !submitOnce && selectedBoxes.length >2 ? 
-          props.nextPage: props.stayOnthisPage
-          }> 
+          <h1>{props.question}</h1>
+          <div className="boxes">
+            {Array.from({ length: 6 }, (_, i) => i + 1).map(renderBox)}
+            
+          </div>
+          
+          <div>
+            {showLoading ? <div> <LoadingPage/></div>: null}
+          </div>
+        <Link 
+          ref={linkRef} 
+          onClick={
+            !submitOnce && selectedBoxes.length >2 ? 
+            handleNext : null
+          } 
+          to={
+            !submitOnce && selectedBoxes.length >2 ? 
+            props.nextPage: props.stayOnthisPage
+            }> 
           <button>Next</button>
-          </Link>
+        </Link>
       </div>
       
     );
@@ -261,8 +279,8 @@ const GiftDetective = (props) => {
 
 
   function Resultpage(props) {
-    const messages = ['color(s)','food(s)', 'gift(s)']
-    // console.log(props.data);
+    const messages = ['food(s)','color(s)', 'gift(s)']
+    console.log(props.data);
     return (
       <div>
         
@@ -274,7 +292,7 @@ const GiftDetective = (props) => {
                 {
                     item.CASeletedPosition.map((box, j) => (
                       <div key={j}>
-                        <EachResult resultImageUrl ={''} id={box} />
+                        <EachResult resultImageUrl ={item.CAImgUrl[box]} /** id={box} */ />
                       
                       </div>
                     )
@@ -293,13 +311,13 @@ const GiftDetective = (props) => {
   function EachResult(props){
     const renderBox = (index) => {
 
-      const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
+      // const imageUrl = `https://source.unsplash.com/random/200x200?sig=${props.id}`;
       // const imageUrl = props.resultImageUrl;
       return (
         <div 
           className='box box-result'
         >
-          <img src={imageUrl} alt="" />
+          <img src={props.resultImageUrl} alt="ohoh :<" />
         </div>
       );
     }
